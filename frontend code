@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHL Assessment Recommendation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+  <!-- Header -->
+  <header class="bg-blue-700 text-white py-6 shadow">
+    <div class="container mx-auto text-center">
+      <h1 class="text-3xl font-bold">SHL Assessment Recommender</h1>
+      <p class="mt-2 text-sm">Find the best assessment for your hiring needs</p>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container mx-auto px-4 py-10">
+    <section class="bg-white p-6 rounded shadow-md">
+      <h2 class="text-xl font-semibold mb-4">Paste Job Description or Query</h2>
+      <textarea id="query" rows="6" class="w-full border border-gray-300 rounded p-4 mb-4 resize-none" placeholder="Looking for a Python + SQL + JavaScript assessment under 60 mins..."></textarea>
+      <button onclick="fetchRecommendations()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded">
+        Get Recommendations
+      </button>
+      <div id="loading" class="text-blue-600 mt-4 hidden">Loading...</div>
+      <div id="error" class="text-red-600 mt-4 hidden">Error fetching recommendations. Try again.</div>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="mt-10 hidden">
+      <h3 class="text-2xl font-semibold mb-4">Recommended Assessments</h3>
+      <table class="min-w-full bg-white border border-gray-200 rounded shadow-md">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr>
+            <th class="text-left py-3 px-4">Name</th>
+            <th class="text-left py-3 px-4">Remote</th>
+            <th class="text-left py-3 px-4">Adaptive</th>
+            <th class="text-left py-3 px-4">Duration</th>
+            <th class="text-left py-3 px-4">Type</th>
+          </tr>
+        </thead>
+        <tbody id="result-body" class="text-gray-800"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="text-center text-sm text-gray-500 py-6 border-t mt-10">
+    © 2025 SHL Recommender | GenAI Internship Assignment
+  </footer>
+
+  <script>
+    async function fetchRecommendations() {
+      const query = document.getElementById("query").value;
+      const resultBody = document.getElementById("result-body");
+      const results = document.getElementById("results");
+      const loading = document.getElementById("loading");
+      const error = document.getElementById("error");
+
+      results.classList.add("hidden");
+      error.classList.add("hidden");
+      loading.classList.remove("hidden");
+      resultBody.innerHTML = "";
+
+      try {
+        const response = await fetch("https://shl-com.onrender.com")
+
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
+
+        const data = await response.json();
+        loading.classList.add("hidden");
+
+        if (!data.recommendations || data.recommendations.length === 0) {
+          error.textContent = "No recommendations found.";
+          error.classList.remove("hidden");
+          return;
+        }
+
+        data.recommendations.forEach(rec => {
+          resultBody.innerHTML += `
+            <tr class="border-t">
+              <td class="py-2 px-4"><a href="${rec.url}" target="_blank" class="text-blue-600 underline">${rec.name}</a></td>
+              <td class="py-2 px-4">${rec.remote_support ? "Yes" : "No"}</td>
+              <td class="py-2 px-4">${rec.adaptive_support ? "Yes" : "No"}</td>
+              <td class="py-2 px-4">${rec.duration}</td>
+              <td class="py-2 px-4">${rec.test_type}</td>
+            </tr>`;
+        });
+
+        results.classList.remove("hidden");
+      } catch (e) {
+        loading.classList.add("hidden");
+        error.classList.remove("hidden");
+      }
+    }
+  </script>
+
+</body>
+</html>
